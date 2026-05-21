@@ -1,11 +1,11 @@
-import { sendMailJob } from "../jobs/sendMail.job.js";
-import { readMailJob } from "../jobs/readMail.job.js";
-import { followUpJob } from "../jobs/followUp.job.js";
+import { sendMailWorker } from "../workers/sendMail.worker.js";
+import { readMailJob } from "../workers/readMail.worker.js";
+import { followUpJob } from "../workers/followUp.worker.js";
 
 const task = process.argv[2];
 
 const handlers = {
-  send: sendMailJob,
+  send: sendMailWorker,
   read: readMailJob,
   "follow-up": followUpJob
 };

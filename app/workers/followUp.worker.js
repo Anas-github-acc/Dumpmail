@@ -1,5 +1,5 @@
-import { sendMail } from "../services/mail/send.js";
-import { followUpEmail } from "../services/mail/template.js";
+import { runSendMail } from "../services/mail/send.js";
+// import { followUpEmail } from "../services/mail/template.js";
 import { delay } from "../utils/helpers.js";
 import { supabase } from "../services/db/supabase.js";
 import { env } from "../config/env.js";
@@ -22,9 +22,9 @@ export async function followUpJob() {
       continue;
     }
 
-    const mail = await followUpEmail(lead);
+    const mail = "Hello anas";
 
-    const messageId = await sendMail(
+    const messageId = await runSendMail(
       lead.email,
       mail.subject,
       mail.body,

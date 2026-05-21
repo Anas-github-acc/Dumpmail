@@ -1,8 +1,8 @@
 import cron from "node-cron";
-import { cronConfig } from "../../config/cron.config.js";
-import { sendMailJob } from "../../jobs/sendMail.job.js";
-import { readMailJob } from "../../jobs/readMail.job.js";
-import { followUpJob } from "../../jobs/followUp.job.js";
+import { cronConfig } from "../config/cron.config.js";
+import { sendMailJob } from "../workers/sendMail.worker.js";
+import { readMailJob } from "../workers/readMail.worker.js";
+import { followUpJob } from "../workers/followUp.worker.js";
 // import { ingestCSVs } from "../csv/csvReader.js";
 
 export function initCronJobs() {

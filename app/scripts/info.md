@@ -1,0 +1,1 @@
+scheduler folder is currently in no use instead using script folder to run the job directly using Github Scheduler Action

@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --use-system-ca app/index.js",
-    "test": "vitest",
+    "test": "vitest tests/*",
     "preview:email": "node app/scripts/previewAiEmail.js",
     "job:send": "node --use-system-ca app/scripts/runJob.js send",
     "job:read": "node --use-system-ca app/scripts/runJob.js read",
