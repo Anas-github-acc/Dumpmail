@@ -77,7 +77,7 @@ export async function runSendMail(
 
 
   const mailOptions = {
-    from: `Anas <${smtp.user}>`,
+    from: `Anas <${smtp.user_email}>`,
     to,
     subject,
     text,

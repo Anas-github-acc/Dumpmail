@@ -6,7 +6,7 @@ dotenv.config();
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SECRET_KEY
+  process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SECRET_KEY
 );
 
 const EMAIL_USER = process.env.EMAIL_USER || "anas.ahamad955@gmail.com";
@@ -218,17 +218,6 @@ async function main() {
 
   } catch (err) {
     console.error("Error seeding data:", err);
-    
-    // await supabase.from("email_events").delete().neq("id", 0);
-    // await supabase.from("campaign_leads").delete().neq("id", 0);
-    // await supabase.from("campaign_sequences").delete().neq("id", 0);
-    // await supabase.from("campaign_runtime_config").delete().neq("id", 0);
-    // await supabase.from("campaigns").delete().neq("id", 0);
-    // await supabase.from("sender_warmup_state").delete().neq("id", 0);
-    // await supabase.from("sender_accounts").delete().neq("id", 0);
-    // await supabase.from("email_templates").delete().neq("id", 0);
-    // await supabase.from("leads").delete().neq("id", 0);
-    // await supabase.from("users").delete().neq("id", 0);
 
     process.exit(1);
   }
