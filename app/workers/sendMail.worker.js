@@ -6,23 +6,24 @@ import { env } from "../config/env.js";
 import { log } from "../utils/logger.js";
 import { validateRecipientDeliverability } from "../utils/validator.js";
 
-const now = new Date();
-const istTime = new Date( now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }) );
-const hour = istTime.getHours();
-
-function shouldRun() {
-  if (hour >= 5 && hour < 24) {
-    return true;
-  }
-  return false;
-}
-
 export async function sendMailWorker() {
-  // if (!shouldRun()) {
-  //   log(["sendMailWorker skipped", "Not the scheduled time"]);
-  //   return;
-  // }
+  const { data : check, error: checkError } = await supabase.rpc("check_campaigns_to_run", {
+    p_user_id: env.USER_ID
+  });
 
+  if (checkError) {
+    log(["check_campaigns_to_run failed", checkError.message]);
+    return;
+  }
+
+  const compaignCheck = check?.[0];
+
+  if (!check?.shouldRun) {
+    log(["sendMailWorker skipped", "No campaigns scheduled to run at this time"]);
+    return;
+  }
+
+  const compaignId = compaignCheck.campaign_id;
   const user_id = env.USER_ID;
 
   if (!user_id) {
@@ -64,6 +65,7 @@ export async function sendMailWorker() {
 
   const { data: leads = [], error: leadsError } = await supabase.rpc("rpc_get_campaign_leads_to_send_v2", {
     p_user_id: user_id,
+    p_campaign_id: compaignId,
     p_limit: 1
   });
   

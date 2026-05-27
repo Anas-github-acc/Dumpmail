@@ -20,10 +20,37 @@ describe('Campaign Mail Automation RPC Integration', () => {
   let sequence1Id;
   let sequence2Id;
   let sentMessageId;
+  let failedLeadId;
+  let failedCampaignLeadId;
 
   const unique = Date.now();
 
   async function cleanup() {
+    if (campaignLeadId) {
+      await supabase.from('email_events').delete().eq('campaign_lead_id', campaignLeadId);
+    }
+
+    if (failedCampaignLeadId) {
+      await supabase.from('email_events').delete().eq('campaign_lead_id', failedCampaignLeadId);
+    }
+
+    if (failedCampaignLeadId) {
+      await supabase.from('campaign_leads').delete().eq('id', failedCampaignLeadId);
+    }
+
+    if (failedLeadId) {
+      await supabase.from('leads').delete().eq('id', failedLeadId);
+    }
+
+    if (campaignLeadId) {
+      await supabase.from('campaign_leads').delete().eq('id', campaignLeadId);
+    }
+
+    if (campaignId) {
+      await supabase.from('campaign_sequences').delete().eq('campaign_id', campaignId);
+      await supabase.from('campaign_runtime_config').delete().eq('campaign_id', campaignId);
+    }
+
     if (campaignId) {
       await supabase.from('campaigns').delete().eq('id', campaignId);
     }
@@ -41,6 +68,10 @@ describe('Campaign Mail Automation RPC Integration', () => {
     }
 
     if (senderAccountId) {
+      await supabase
+        .from('sender_warmup_state')
+        .delete()
+        .eq('sender_account_id', senderAccountId);
       await supabase.from('sender_accounts').delete().eq('id', senderAccountId);
     }
 
@@ -139,7 +170,8 @@ describe('Campaign Mail Automation RPC Integration', () => {
         user_id: userId,
         sender_account_id: senderAccountId,
         name: 'Vitest Campaign',
-        status: 'active'
+        status: 'active',
+        max_steps: 2
       })
       .select()
       .single();
@@ -223,11 +255,23 @@ describe('Campaign Mail Automation RPC Integration', () => {
     expect(data[0]).toHaveProperty('remaining_today');
   });
 
-  it('2. rpc_get_campaign_leads_to_send_v2 should select campaign, lead, sequence and template', async () => {
+  it('2. rpc_check_campaign_to_run_v2 should return active campaign when eligible', async () => {
+    const { data, error } = await supabase.rpc('rpc_check_campaign_to_run_v2', {
+      p_user_id: userId
+    });
+
+    expect(error).toBeNull();
+    expect(data.length).toBe(1);
+    expect(data[0].should_run).toBe(true);
+    expect(data[0].campaign_id).toBe(campaignId);
+  });
+
+  it('3. rpc_get_campaign_leads_to_send_v2 should select campaign, lead, sequence and template', async () => {
     const { data, error } = await supabase.rpc(
       'rpc_get_campaign_leads_to_send_v2',
       {
         p_user_id: userId,
+        p_campaign_id: campaignId,
         p_limit: 1
       }
     );
@@ -258,7 +302,7 @@ describe('Campaign Mail Automation RPC Integration', () => {
     expect(reserved.reserved_at).not.toBeNull();
   });
 
-  it('3. rpc_mark_mail_sent_v2 should mark sent, log event, and move lead to next step', async () => {
+  it('4. rpc_mark_mail_sent_v2 should mark sent, log event, and move lead to next step', async () => {
     sentMessageId = `msg_${Date.now()}`;
 
     const { error } = await supabase.rpc('rpc_mark_mail_sent_v2', {
@@ -297,11 +341,12 @@ describe('Campaign Mail Automation RPC Integration', () => {
     expect(events[0].event_type).toBe('sent');
   });
 
-  it('4. rpc_get_campaign_leads_to_send_v2 should not return same lead before follow-up date', async () => {
+  it('5. rpc_get_campaign_leads_to_send_v2 should not return same lead before follow-up date', async () => {
     const { data, error } = await supabase.rpc(
       'rpc_get_campaign_leads_to_send_v2',
       {
         p_user_id: userId,
+        p_campaign_id: campaignId,
         p_limit: 1
       }
     );
@@ -310,7 +355,15 @@ describe('Campaign Mail Automation RPC Integration', () => {
     expect(data.find(row => row.campaign_lead_id === campaignLeadId)).toBeUndefined();
   });
 
-  it('5. should manually make follow-up eligible and return step 2 template', async () => {
+  it('6. should manually make follow-up eligible and return step 2 template', async () => {
+    const { data: state } = await supabase.rpc('rpc_get_sender_state_v2', {
+      p_sender_account_id: senderAccountId
+    });
+
+    console.log(state);
+
+    
+    
     const { error: updateError } = await supabase
       .from('campaign_leads')
       .update({
@@ -325,6 +378,7 @@ describe('Campaign Mail Automation RPC Integration', () => {
       'rpc_get_campaign_leads_to_send_v2',
       {
         p_user_id: userId,
+        p_campaign_id: campaignId,
         p_limit: 1
       }
     );
@@ -338,7 +392,7 @@ describe('Campaign Mail Automation RPC Integration', () => {
     expect(data[0].template_subject).toBe('Followup Subject');
   });
 
-  it('6. rpc_mark_reply_detected_v2 should stop the campaign lead', async () => {
+  it('7. rpc_mark_reply_detected_v2 should stop the campaign lead', async () => {
     const { error } = await supabase.rpc('rpc_mark_reply_detected_v2', {
       p_campaign_lead_id: campaignLeadId
     });
@@ -357,7 +411,7 @@ describe('Campaign Mail Automation RPC Integration', () => {
     expect(data.completed_at).not.toBeNull();
   });
 
-  it('7. rpc_mark_mail_failed_v2 should mark failed lead and log failure event', async () => {
+  it('8. rpc_mark_mail_failed_v2 should mark failed lead and log failure event', async () => {
     const { data: failedLead, error: failedLeadError } = await supabase
       .from('leads')
       .insert({
@@ -372,6 +426,7 @@ describe('Campaign Mail Automation RPC Integration', () => {
       .single();
 
     expect(failedLeadError).toBeNull();
+  failedLeadId = failedLead.id;
 
     const { data: failedCampaignLead, error: failedCampaignLeadError } =
       await supabase
@@ -388,6 +443,7 @@ describe('Campaign Mail Automation RPC Integration', () => {
         .single();
 
     expect(failedCampaignLeadError).toBeNull();
+    failedCampaignLeadId = failedCampaignLead.id;
 
     const { error } = await supabase.rpc('rpc_mark_mail_failed_v2', {
       p_campaign_lead_id: failedCampaignLead.id,
@@ -414,7 +470,6 @@ describe('Campaign Mail Automation RPC Integration', () => {
 
     expect(failedEventsError).toBeNull();
     expect(failedEvents.length).toBeGreaterThan(0);
-
-    await supabase.from('leads').delete().eq('id', failedLead.id);
   });
+
 });
