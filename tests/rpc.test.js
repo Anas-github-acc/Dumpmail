@@ -6,7 +6,7 @@ dotenv.config();
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SECRET_KEY
+  process.env.SUPABASE_SECRET_KEY
 );
 
 describe('Campaign Mail Automation RPC Integration', () => {
@@ -111,9 +111,7 @@ describe('Campaign Mail Automation RPC Integration', () => {
         user_id: userId,
         name: 'Intro Template',
         subject: 'Intro Subject',
-        body_html: '<p>Hello {{name}}</p>',
-        body_text: 'Hello {{name}}',
-        variables: ['name']
+        body_text: 'Hello {{name}}'
       })
       .select()
       .single();
@@ -127,9 +125,7 @@ describe('Campaign Mail Automation RPC Integration', () => {
         user_id: userId,
         name: 'Followup Template',
         subject: 'Followup Subject',
-        body_html: '<p>Following up {{name}}</p>',
-        body_text: 'Following up {{name}}',
-        variables: ['name']
+        body_text: 'Following up {{name}}'
       })
       .select()
       .single();
@@ -231,7 +227,7 @@ describe('Campaign Mail Automation RPC Integration', () => {
     const { data, error } = await supabase.rpc(
       'rpc_get_campaign_leads_to_send_v2',
       {
-        p_sender_account_id: senderAccountId,
+        p_user_id: userId,
         p_limit: 1
       }
     );
@@ -305,7 +301,7 @@ describe('Campaign Mail Automation RPC Integration', () => {
     const { data, error } = await supabase.rpc(
       'rpc_get_campaign_leads_to_send_v2',
       {
-        p_sender_account_id: senderAccountId,
+        p_user_id: userId,
         p_limit: 1
       }
     );
@@ -328,7 +324,7 @@ describe('Campaign Mail Automation RPC Integration', () => {
     const { data, error } = await supabase.rpc(
       'rpc_get_campaign_leads_to_send_v2',
       {
-        p_sender_account_id: senderAccountId,
+        p_user_id: userId,
         p_limit: 1
       }
     );

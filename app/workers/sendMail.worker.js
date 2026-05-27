@@ -36,6 +36,7 @@ export async function sendMailWorker() {
       sender_account_id,
       campaign_id,
       lead_id,
+      template_id,
 
       name,
       email,
@@ -46,7 +47,11 @@ export async function sendMailWorker() {
       sequence_id,
 
       subject,
-      body_html
+      body_html,
+      attachment_name,
+      attachment_path,
+      attachment_size,
+      attachment_mime_type,
 
       smtp_host,
       smtp_port,
@@ -77,6 +82,7 @@ export async function sendMailWorker() {
   // console.log(lead.template_subject);
   // console.log(lead.template_body);
 
+
   for(const lead of leads) {
     const template = await renderTemplate(
       lead.template_subject,
@@ -85,7 +91,13 @@ export async function sendMailWorker() {
         name: lead.lead_name,
         company: lead.lead_company,
         role: lead.lead_role,
-      }
+      },
+      lead.attachment ? {
+        name: lead.attachment_name,
+        path: lead.attachment_path,
+        size: lead.attachment_size,
+        mime_type: lead.attachment_mime_type
+      } : undefined
     );
 
     // console.log("Rendered template:", template);

@@ -1,8 +1,9 @@
 // import { marked } from "marked";
 // import { convert } from "html-to-text";
+import { supabase } from "../db/supabase.js";
 
 
-export async function renderTemplate(subject, body, context) {
+export async function renderTemplate(subject, body, context, attachment = null) {
 
   function parseTemplate(template, context = {}) {
     let result = template;
@@ -55,6 +56,43 @@ export async function renderTemplate(subject, body, context) {
 
   const renderedSubject = parseTemplate(subject, context);
   const renderedBody = parseTemplate(body, context);
+
+  if (attachment) {
+    const { data, error } = await supabase.storage
+      .from("template-attachments")
+      .download(attachment.path);
+
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+      .from("template-attachments")
+      .createSignedUrl(attachment.path, 60 * 5);
+
+    if (error) {
+      console.error("Error downloading attachment:", error);
+      throw new Error("Failed to download attachment");
+    }
+
+    if (signedUrlError) {
+      console.error("Error creating signed URL:", signedUrlError);
+      throw new Error("Failed to create signed URL for attachment");
+    }
+
+    const res = await fetch(signedUrlData.signedUrl);
+    if (!res.ok) throw new Error("Failed to download attachment");
+
+    const arrayBuffer = await res.arrayBuffer();
+
+    return {
+      subject: renderedSubject,
+      body: renderedBody,
+      attachments: [
+        {
+          filename: attachment.name || "resume.pdf",
+          content: Buffer.from(arrayBuffer),
+          contentType: attachment.mime_type || "application/pdf",
+        }
+      ]
+    };
+  }
 
   return {
     subject: renderedSubject,

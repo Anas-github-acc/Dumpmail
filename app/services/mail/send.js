@@ -75,13 +75,12 @@ export async function runSendMail(
       ? { inReplyTo: options, references: options }
       : options || {};
 
-
   const mailOptions = {
     from: `Anas <${smtp.user_email}>`,
     to,
     subject,
     text,
-    attachments: normalizedOptions.attachments,
+    attachments: normalizedOptions.attachments || [],
     list: {
       unsubscribe: {
         url: `https://${smtp.live ? smtp.live : ''}/unsubscribe?email=${smtp.user_email}&token=UNSUBSCRIBE_TOKEN`,
