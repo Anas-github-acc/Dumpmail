@@ -14,21 +14,9 @@
 #       group: lilmailing-read-replies
 #       cancel-in-progress: false
 #     env:
-#       EMAIL_USER: ${{ secrets.EMAIL_USER }}
-#       EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
-#       SMTP_HOST: ${{ secrets.SMTP_HOST }}
-#       SMTP_PORT: ${{ secrets.SMTP_PORT }}
-#       IMAP_HOST: ${{ secrets.IMAP_HOST }}
-#       IMAP_PORT: ${{ secrets.IMAP_PORT }}
-#       RESUME_PATH: ${{ secrets.RESUME_PATH }}
-#       RESUME_FILENAME: ${{ secrets.RESUME_FILENAME }}
-#       SEND_DELAY_MS: ${{ secrets.SEND_DELAY_MS }}
-#       REPLY_LOOKBACK_DAYS: ${{ secrets.REPLY_LOOKBACK_DAYS }}
+#       USER_ID: ${{ secrets.USER_ID }}
 #       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
 #       SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-#       GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
-#       GOOGLE_AI_MODEL: ${{ secrets.GOOGLE_AI_MODEL }}
-#       LIVE: ${{ secrets.LIVE }}
 
 #     steps:
 #       - name: Checkout

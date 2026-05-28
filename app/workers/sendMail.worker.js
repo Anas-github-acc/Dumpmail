@@ -7,7 +7,7 @@ import { log } from "../utils/logger.js";
 import { validateRecipientDeliverability } from "../utils/validator.js";
 
 export async function sendMailWorker() {
-  const { data : check, error: checkError } = await supabase.rpc("check_campaigns_to_run", {
+  const { data : check, error: checkError } = await supabase.rpc("rpc_check_campaign_to_run_v2", {
     p_user_id: env.USER_ID
   });
 
