@@ -1,0 +1,33 @@
+stages:
+  - build
+  - schedule
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_BUILDKIT: 1
+  PUBLIC_IMAGE: "registry.gitlab.com/anas-github-acc/dumpmail:latest"
+
+build_image:
+  stage: build
+  image: docker:27
+  services:
+    - name: docker:27-dind
+      command: ["--tls=false"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  rules:
+    - if: '$CI_PROJECT_PATH == "Anas-github-acc/Dumpmail" && $CI_COMMIT_BRANCH == "main"'
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
+    - docker build -t "$PUBLIC_IMAGE" .
+    - docker push "$PUBLIC_IMAGE"
+
+send_mails:
+  stage: schedule
+  image: "$PUBLIC_IMAGE"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  script:
+    - node --use-system-ca app/scripts/runJob.js send
