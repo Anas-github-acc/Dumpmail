@@ -12,11 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:
-      group: lilmailing-send-mails
+      group: dumpmail-send-mails
       cancel-in-progress: false
     
     container:
-      image: ghcr.io/${{ github.repository_owner }}/Dumpmail:latest
+      image: ghcr.io/anas-github-acc/dumpmail:latest
     
     env:
       USER_ID: ${{ secrets.USER_ID }}
@@ -25,4 +25,4 @@ jobs:
     
 
     steps:
-      - run: pnpm job:send
+      - run: node --use-system-ca app/scripts/runJob.js send
