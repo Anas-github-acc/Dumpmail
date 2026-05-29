@@ -3,6 +3,7 @@ name: Schedule Send Mails
 on:
   schedule:
     - cron: "0 * * * *"
+      timezone: "Asia/Kolkata"
 
   workflow_dispatch:
 
