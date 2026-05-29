@@ -23,6 +23,14 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
     
-
     steps:
-      - run: node --use-system-ca app/scripts/runJob.js send
+      # - name: Debug paths
+      #   run: |
+      #     pwd
+      #     ls -la
+      #     ls -la /app || true
+      #     find . -name runJob.js
+      #     find / -name runJob.js 2>/dev/null | head -20
+
+      - name: Run job
+        run: node --use-system-ca /app/app/scripts/runJob.js send
